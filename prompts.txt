@@ -1,0 +1,7 @@
+1. Good morning!
+2. going forward, can you copy every one of my prompts to the 1.prompts.txt file. And add every of the execution steps to the 2.steps.txt
+3. Create me a buddubro.html file that is an ecommerce standalone site, where you have 4 products - 1. apple, 2.orange, 3.grapes, 4.strawberries. Use pictures from online to show these 4 items - one picture each.
+4. Set gpt-5.4-nano as the model to be used
+5. Write teh code in python and use FastAPI where applicable
+6. Implement RAG now using ChromaDB. For details on the 4 products, refer only to src1.txt and src2.txt. For details asked outside of these, its okay to say "This is not in my scope". Create chunks based on context
+7. Add a widget on the website where Users can ask questions and get answers. This should be the chatbox that we plan to implement for this project. The chatbot uses the above RAG and answers questions only within the context of src1.txt and src2.txt. It should not query anything outside of these. For other details that users ask, chatbot should reply that "Its out of context for this site. Thank you!"

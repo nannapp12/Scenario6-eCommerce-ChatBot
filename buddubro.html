@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BudduBro Fruit Shop</title>
+<style>
+  :root {
+    --bg: #fdf8f1;
+    --card: #ffffff;
+    --text: #2a2a2a;
+    --muted: #6b6b6b;
+    --accent: #e4572e;
+    --accent-dark: #c4421d;
+    --border: #eee3d3;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+  header { background: var(--accent); color: #fff; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
+  header h1 { font-size: 1.5rem; letter-spacing: .5px; }
+  .cart-btn { background: #fff; color: var(--accent); border: none; padding: 8px 16px; border-radius: 999px; font-weight: 700; cursor: pointer; font-size: 1rem; }
+  .cart-btn:hover { background: #fff1ea; }
+  .hero { text-align: center; padding: 48px 20px 24px; }
+  .hero h2 { font-size: 2rem; margin-bottom: 8px; }
+  .hero p { color: var(--muted); }
+  .grid { max-width: 1100px; margin: 0 auto; padding: 24px 20px 56px; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; transition: transform .15s, box-shadow .15s; }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,.08); }
+  .card img { width: 100%; height: 200px; object-fit: cover; display: block; background: #f1e9dc; }
+  .card .body { padding: 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .card h3 { font-size: 1.2rem; }
+  .card .desc { color: var(--muted); font-size: .9rem; flex: 1; }
+  .price { font-weight: 700; font-size: 1.1rem; }
+  .add { background: var(--accent); color: #fff; border: none; padding: 10px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 8px; }
+  .add:hover { background: var(--accent-dark); }
+
+  /* cart drawer */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); display: none; z-index: 20; }
+  .overlay.open { display: block; }
+  .drawer { position: fixed; top: 0; right: -420px; width: min(400px, 100%); height: 100%; background: #fff; z-index: 30; padding: 20px; display: flex; flex-direction: column; transition: right .25s; }
+  .drawer.open { right: 0; }
+  .drawer-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .close { background: none; border: none; font-size: 1.6rem; cursor: pointer; }
+  .items { flex: 1; overflow-y: auto; }
+  .item { display: flex; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .item img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; }
+  .item .info { flex: 1; }
+  .qty { display: flex; align-items: center; gap: 6px; }
+  .qty button { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border); background: #fff; cursor: pointer; font-size: 1rem; }
+  .empty { color: var(--muted); text-align: center; margin-top: 40px; }
+  .total { display: flex; justify-content: space-between; font-weight: 700; font-size: 1.1rem; padding: 14px 0; }
+  .checkout { background: var(--accent); color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+  .checkout:disabled { background: #ccc; cursor: not-allowed; }
+  /* chat widget */
+  .chat-fab { position: fixed; right: 20px; bottom: 20px; width: 56px; height: 56px; border-radius: 50%; border: none; background: var(--accent); color: #fff; font-size: 1.5rem; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.25); z-index: 15; }
+  .chat-fab:hover { background: var(--accent-dark); }
+  .chat { position: fixed; right: 20px; bottom: 88px; width: min(360px, calc(100% - 40px)); height: 480px; max-height: calc(100% - 110px); background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.2); display: none; flex-direction: column; overflow: hidden; z-index: 15; }
+  .chat.open { display: flex; }
+  .chat-head { background: var(--accent); color: #fff; padding: 12px 16px; font-weight: 700; }
+  .chat-log { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: var(--bg); }
+  .msg { max-width: 85%; padding: 8px 12px; border-radius: 12px; font-size: .92rem; white-space: pre-wrap; }
+  .msg.bot { background: #fff; border: 1px solid var(--border); align-self: flex-start; }
+  .msg.user { background: var(--accent); color: #fff; align-self: flex-end; }
+  .chat-form { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--border); }
+  .chat-form input { flex: 1; padding: 9px 12px; border: 1px solid var(--border); border-radius: 999px; font-size: .95rem; }
+  .chat-form button { background: var(--accent); color: #fff; border: none; padding: 0 16px; border-radius: 999px; font-weight: 600; cursor: pointer; }
+  .chat-form button:disabled { background: #ccc; }
+  footer { text-align: center; padding: 24px; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🍎 BudduBro</h1>
+  <button class="cart-btn" id="openCart">Cart (<span id="count">0</span>)</button>
+</header>
+
+<section class="hero">
+  <h2>Fresh fruit, delivered fast</h2>
+  <p>Pick your favourites and add them to your cart.</p>
+</section>
+
+<main class="grid" id="products"></main>
+
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="drawer" aria-label="Shopping cart">
+  <div class="drawer-head">
+    <h2>Your Cart</h2>
+    <button class="close" id="closeCart" aria-label="Close cart">&times;</button>
+  </div>
+  <div class="items" id="items"></div>
+  <div class="total"><span>Total</span><span id="total">$0.00</span></div>
+  <button class="checkout" id="checkout">Checkout</button>
+</aside>
+
+<button class="chat-fab" id="chatFab" aria-label="Chat with us">💬</button>
+<section class="chat" id="chat" aria-label="Chat assistant">
+  <div class="chat-head">BudduBro Assistant</div>
+  <div class="chat-log" id="chatLog"></div>
+  <form class="chat-form" id="chatForm">
+    <input id="chatInput" placeholder="Ask about our fruit..." maxlength="500" autocomplete="off" required>
+    <button id="chatSend">Send</button>
+  </form>
+</section>
+
+<footer>&copy; 2026 BudduBro Fruit Shop. Photos from Unsplash.</footer>
+
+<script>
+  const products = [
+    { id: 1, name: "Apple",       price: 2.00, unit: "", desc: "Crisp, juicy red apples.",
+      img: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=600&q=70" },
+    { id: 2, name: "Orange",      price: 1.00, unit: "", desc: "Sweet, zesty and full of vitamin C.",
+      img: "https://images.unsplash.com/photo-1547514701-42782101795e?auto=format&fit=crop&w=600&q=70" },
+    { id: 3, name: "Grapes",      price: 3.00, unit: "", desc: "Plump seedless grapes, ready to snack on.",
+      img: "https://images.unsplash.com/photo-1537640538966-79f369143f8f?auto=format&fit=crop&w=600&q=70" },
+    { id: 4, name: "Strawberries", price: 4.50, unit: "", desc: "Ripe, sweet, hand-picked strawberries.",
+      img: "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?auto=format&fit=crop&w=600&q=70" }
+  ];
+
+  const cart = {}; // id -> quantity
+  const $ = id => document.getElementById(id);
+  const money = n => "$" + n.toFixed(2);
+
+  function renderProducts() {
+    $("products").innerHTML = products.map(p => `
+      <article class="card">
+        <img src="${p.img}" alt="${p.name}" loading="lazy">
+        <div class="body">
+          <h3>${p.name}</h3>
+          <p class="desc">${p.desc}</p>
+          <p class="price">${money(p.price)} </p>
+          <button class="add" data-id="${p.id}">Add to cart</button>
+        </div>
+      </article>`).join("");
+  }
+
+  function renderCart() {
+    const ids = Object.keys(cart);
+    let total = 0, count = 0;
+    $("items").innerHTML = ids.length ? ids.map(id => {
+      const p = products.find(x => x.id == id), q = cart[id];
+      total += p.price * q; count += q;
+      return `
+        <div class="item">
+          <img src="${p.img}" alt="${p.name}">
+          <div class="info"><strong>${p.name}</strong><br><small>${money(p.price)} each</small></div>
+          <div class="qty">
+            <button data-act="dec" data-id="${id}">&minus;</button>
+            <span>${q}</span>
+            <button data-act="inc" data-id="${id}">+</button>
+          </div>
+        </div>`;
+    }).join("") : '<p class="empty">Your cart is empty.</p>';
+    $("total").textContent = money(total);
+    $("count").textContent = count;
+    $("checkout").disabled = !ids.length;
+  }
+
+  function toggleCart(open) {
+    $("drawer").classList.toggle("open", open);
+    $("overlay").classList.toggle("open", open);
+  }
+
+  $("products").addEventListener("click", e => {
+    const id = e.target.dataset.id;
+    if (!id || !e.target.classList.contains("add")) return;
+    cart[id] = (cart[id] || 0) + 1;
+    renderCart();
+  });
+
+  $("items").addEventListener("click", e => {
+    const { act, id } = e.target.dataset;
+    if (!act) return;
+    cart[id] += act === "inc" ? 1 : -1;
+    if (cart[id] <= 0) delete cart[id];
+    renderCart();
+  });
+
+  $("openCart").onclick = () => toggleCart(true);
+  $("closeCart").onclick = $("overlay").onclick = () => toggleCart(false);
+  $("checkout").onclick = () => {
+    alert("Thanks for your order! Total: " + $("total").textContent);
+    for (const k in cart) delete cart[k];
+    renderCart();
+    toggleCart(false);
+  };
+
+  // ---- chat widget (talks to the FastAPI /chat endpoint) ----
+  const chatHistory = [];
+  function addMsg(role, text) {
+    const div = document.createElement("div");
+    div.className = "msg " + (role === "user" ? "user" : "bot");
+    div.textContent = text;
+    $("chatLog").appendChild(div);
+    $("chatLog").scrollTop = $("chatLog").scrollHeight;
+  }
+
+  $("chatFab").onclick = () => {
+    const open = $("chat").classList.toggle("open");
+    if (open && !$("chatLog").children.length) {
+      addMsg("bot", "Hi! Ask me about our apples, oranges, grapes and strawberries.");
+    }
+    if (open) $("chatInput").focus();
+  };
+
+  $("chatForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const message = $("chatInput").value.trim();
+    if (!message) return;
+    $("chatInput").value = "";
+    $("chatSend").disabled = true;
+    addMsg("user", message);
+    let reply;
+    try {
+      const res = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, history: chatHistory.slice(-6) })
+      });
+      if (!res.ok) throw new Error(res.status);
+      reply = (await res.json()).reply;
+      chatHistory.push({ role: "user", content: message }, { role: "assistant", content: reply });
+    } catch (err) {
+      reply = "Sorry, the assistant is unavailable right now. Please try again later.";
+    }
+    addMsg("bot", reply);
+    $("chatSend").disabled = false;
+    $("chatInput").focus();
+  });
+
+  renderProducts();
+  renderCart();
+</script>
+</body>
+</html>

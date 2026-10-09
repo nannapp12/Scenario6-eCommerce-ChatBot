@@ -1,0 +1,4 @@
+Apples - $2.0
+Oranges - $1.0
+Grapes - $3.0
+Strawberries - $4.5

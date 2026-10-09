@@ -1,0 +1,54 @@
+Prompt 1: what is the command to activate virtual env
+  - Answered directly, no tools used.
+  - Gave PowerShell activation command (.venv\Scripts\Activate.ps1), execution policy fix, cmd/Git Bash alternatives, and noted `uv run` / `uv sync` since the project uses uv.
+
+Prompt 2: log prompts and steps to files
+  - Checked project directory and the existing 1.prompts.txt and 2.steps.txt (both empty).
+  - Wrote prompts 1-2 to 1.prompts.txt.
+  - Wrote steps for prompts 1-2 to 2.steps.txt.
+
+Prompt 3: create buddubro.html ecommerce site
+  - Tested 4 candidate Unsplash image URLs with curl (all HTTP 200, image/jpeg).
+  - Downloaded thumbnails to the scratchpad and viewed them to confirm each shows the right fruit (apples, oranges, grapes, strawberries).
+  - Wrote buddubro.html: single self-contained file (inline CSS/JS) with product grid, add-to-cart, cart drawer with quantity +/-, total, and checkout.
+  - Appended prompt 3 and these steps to the log files.
+
+Prompt 4: set gpt-5.4-nano as the model
+  - Read README.md (Step 3 already names gpt-5.4-nano) and searched the project for existing model config: none.
+  - Inspected src/ and pyproject.toml: only a stub main() exists, no LLM code or dependencies yet.
+  - Created src/ecommerce_chatbot/config.py with MODEL = os.getenv("CHAT_MODEL", "gpt-5.4-nano").
+  - Appended prompt 4 and these steps to the log files.
+
+Prompt 5: write the chatbot code in Python with FastAPI
+  - Read README steps 4-6 (Python/FastAPI, RAG with ChromaDB on Wikipedia + price doc, chat widget on site).
+  - uv add fastapi, uvicorn, openai, chromadb, python-dotenv, httpx (all install on Python 3.14).
+  - Created data/sources/prices.md (price doc matching the site) and .env.example.
+  - Expanded config.py (paths, embedding model, Wikipedia pages, retrieval settings).
+  - Wrote rag.py (embed, retrieve with distance cutoff, guardrailed answer using gpt-5.4-nano), ingest.py (fetch Wikipedia, chunk, embed, store in ChromaDB), app.py (FastAPI: /, /health, /chat).
+  - Wired __init__.main to uvicorn, added `ingest` script in pyproject.toml.
+  - Added chat widget (floating button, chat panel, fetch to /chat) to buddubro.html.
+  - Added data/chroma/ to .gitignore and a Running section to README.md.
+
+Prompt 6: implement RAG with ChromaDB from src1.txt / src2.txt only
+  - Read Source/src1.txt (per-product sourcing/shipping details) and Source/src2.txt (prices).
+  - Removed the Wikipedia sources, data/sources/prices.md and the old chroma data; ingest no longer fetches Wikipedia.
+  - config.py: SOURCES_DIR now Source/, SOURCE_GLOB = src*.txt.
+  - ingest.py: new context-based chunker (blank lines = hard boundary; each long paragraph line = one chunk; consecutive short list lines grouped). Result: 4 product chunks + 1 price-list chunk.
+  - rag.py: system prompt restricted to the context; out-of-scope/no-match answers "This is not in my scope."
+  - Ran `uv run ingest` (embeddings via OpenAI, 5 chunks stored in ChromaDB).
+  - Tested /chat: prices, cheapest fruit, expiry, shipper/delivery, Canada shipping answered correctly; nutrition, US president and a jailbreak attempt got "This is not in my scope."
+  - Updated buddubro.html prices to match src2.txt (Apple 2.00, Orange 1.00, Grapes 3.00, Strawberries 4.50) and removed the made-up unit labels.
+  - Updated README run steps.
+
+Prompt 7: chat widget wired to the RAG, out-of-context reply
+  - The widget (floating button + chat panel in buddubro.html calling POST /chat) already existed from prompt 5; reused it.
+  - rag.py: changed refusal text (REFUSAL and system prompt) to "Its out of context for this site. Thank you!"; added "plain text only, no markdown" after seeing literal ** in a reply.
+  - Started the FastAPI server and tested the widget in a real browser (Playwright): opened chat, asked a strawberry price question (answered $4.5), asked "capital of France" (got the out-of-context message), took a screenshot to confirm the layout.
+  - Only console error was a missing favicon.ico (harmless).
+  - Stopped the server and removed the Playwright temp folder.
+
+Prompt 8: acknowledgement
+  - No action needed; logged the prompt.
+
+Prompt 9: "Can I use jev on this"
+  - Did not recognise "jev"; asked the user to clarify. No tools besides logging.
